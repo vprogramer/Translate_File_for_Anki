@@ -1,4 +1,4 @@
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 from bs4 import BeautifulSoup
 import requests
 
@@ -13,30 +13,31 @@ def translate_transcript_one_word(word):
     transcription = soup.find_all("span", class_="transcription")
     # choose britain english transcription
     br_index = 1
-    if transcription[br_index] is None or translation is None:
+    try:
+        if transcription[br_index] is None or translation is None:
+            translate_many_words(word)
+            return 0
+        transcription = transcription[br_index]
+    except IndexError:
         translate_many_words(word)
         return 0
-    transcription = transcription[br_index]
 
     pair = f"{word} — {translation.text} {transcription.text}\n"
     rev_pair = f"{translation.text} — {word} {transcription.text}\n"
-    # !!! bad idea
     write_translated_words(pair)
     write_translated_words(rev_pair)
 
 
 def translate_many_words(message):
-    translator = Translator()
-    results = translator.translate(message, dest='ru')
-    translation = f"{message} — {results.text}\n"
-    rev_translation = f"{results.text} — {message}\n"
-    # !!! bad idea
+    results = GoogleTranslator(source='auto', target='ru').translate(message)
+    translation = f"{message} — {results}\n"
+    rev_translation = f"{results} — {message}\n"
     write_translated_words(translation)
     write_translated_words(rev_translation)
 
 
 def get_words_from_file(file):
-    with open(file, encoding="utf-8-sig") as f:
+    with open(file, encoding="cp1252") as f:
         lines = f.readlines()
     return lines
 
